@@ -1,18 +1,12 @@
-# Build stage
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Этап 1: Сборка jar-файла
+FROM maven:3.9.3-eclipse-temurin-17 AS builder
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+COPY . .
 RUN mvn clean package -DskipTests
 
-# Run stage
-FROM eclipse-temurin:21-jre-jammy
+# Этап 2: Запуск приложения
+FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-COPY .env .env
-
-# Expose the port the app runs on
-EXPOSE 8081
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"] 
+COPY --from=builder /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
